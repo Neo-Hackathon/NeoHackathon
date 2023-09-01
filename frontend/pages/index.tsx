@@ -3,92 +3,39 @@ import { Inter } from 'next/font/google'
 import styles from '@/styles/Home.module.css'
 import { useState, useEffect } from "react";
 import { Web3 } from "web3";
+import axios from 'axios';
 
 const inter = Inter({ subsets: ['latin'] })
 
 export default function Home() {
   const [account, setAccount] = useState("");
-  const [balance, setBalance] = useState("");
-  let accounts:any;
-  let web3:any;
 
   useEffect(() => {
     const ConnectMetaMask = async () => {
       try {
           window.ethereum.enable().then(async () => {
-          web3 = new Web3(window.ethereum);
-          accounts = await web3.eth.getAccounts();
+          const web3 = new Web3(window.ethereum);
+          const accounts = await web3.eth.getAccounts();
           setAccount(accounts[0]);
+          let config = {
+            url: 'https://evm.ngd.network/api',
+            method: "get",
+            params: {
+              module: "account",
+              action: "eth_get_balance",
+              address: "0x71Bc23122C04F3879D70f1F643aF7245Ae4bB578"
+            }
+          };
+          let response = await axios.request(config);
+          console.log(response);
         });
       } catch (error) {
-
+        console.log(error);
       }
     };
     ConnectMetaMask();
   }, []);
 
-  const mint = async () => {
-    const a = await web3.eth.abi.encodeFunctionCall({
-      name: 'safeMint',
-      type: 'function',
-      inputs: [{
-          internalType: "address",
-          type: 'address',
-          name: 'to'
-      },{
-        internalType: "uint256",
-        type: 'uint256',
-        name: 'tokenId'
-    }]
-    }, [account,2]);
-    console.log("a "+a);
-    const c = await web3.eth.sendTransaction({
-        from: account,
-        to: '0x1968129459a41f38dfbb2771b19e4925a394a1e0',
-        data: a
-    });
-    console.log("c "+c);
-    
-
-    // const a = await web3.eth.abi.encodeFunctionCall({
-    //   name: 'tokenURI',
-    //   type: 'function',
-    //   inputs: [{
-    //       internalType: "uint256",
-    //       type: 'uint256',
-    //       name: 'tokenId'
-    //   }]
-    // }, [0]);
-    // console.log("a "+a);
-    // const c = await web3.eth.call({
-    //     to: "0x1968129459a41f38dfbb2771b19e4925a394a1e0", // contract address
-    //     data: a
-    // })
-    // console.log("c "+c);
-    // const b = await web3.eth.abi.decodeParameter('string',c);
-    // console.log("b "+b);
-  };
-
-  const balanceOf = async () => {
-    try {
-      let d = await web3.eth.abi.encodeFunctionCall({
-        name: 'balanceOf',
-        type: 'function',
-        inputs: [{
-            internalType: "address",
-            type: 'address',
-            name: 'owner'
-        }]
-      }, [account]);
-      let e = await web3.eth.call({
-          to: "0x1968129459a41f38dfbb2771b19e4925a394a1e0",
-          data: d
-      });
-      setBalance(e);
-    } catch (e) {
-      console.log(e);
-    }
-  }
 
   return (
     <>
@@ -107,13 +54,7 @@ export default function Home() {
         ) : null}
         {account ? (
           <>
-            <button onClick={mint}>
-              mint
-            </button>
-            <button onClick={balanceOf}>
-              balanceOf
-            </button>
-            <p>Your account address: {account} / NFT Balance: {balance}</p>
+            <p>Your account address: {account} / NFT Balance: </p>
           </>
         ) : null}
         </div>
