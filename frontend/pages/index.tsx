@@ -10,13 +10,13 @@ export default function Home() {
   const [account, setAccount] = useState("");
   const [balance, setBalance] = useState("");
   let accounts:any;
-  const test = new Web3("https://evm.ngd.network:32332");
+  let web3:any;
 
   useEffect(() => {
     const ConnectMetaMask = async () => {
       try {
           window.ethereum.enable().then(async () => {
-          const web3 = new Web3(window.ethereum);
+          web3 = new Web3(window.ethereum);
           accounts = await web3.eth.getAccounts();
           setAccount(accounts[0]);
         });
@@ -28,7 +28,7 @@ export default function Home() {
   }, []);
 
   const mint = async () => {
-    const a = await test.eth.abi.encodeFunctionCall({
+    const a = await web3.eth.abi.encodeFunctionCall({
       name: 'safeMint',
       type: 'function',
       inputs: [{
@@ -42,7 +42,7 @@ export default function Home() {
     }]
     }, [account,2]);
     console.log("a "+a);
-    const c = await test.eth.sendTransaction({
+    const c = await web3.eth.sendTransaction({
         from: account,
         to: '0x1968129459a41f38dfbb2771b19e4925a394a1e0',
         data: a
@@ -71,7 +71,7 @@ export default function Home() {
 
   const balanceOf = async () => {
     try {
-      let d = await test.eth.abi.encodeFunctionCall({
+      let d = await web3.eth.abi.encodeFunctionCall({
         name: 'balanceOf',
         type: 'function',
         inputs: [{
@@ -80,7 +80,7 @@ export default function Home() {
             name: 'owner'
         }]
       }, [account]);
-      let e = await test.eth.call({
+      let e = await web3.eth.call({
           to: "0x1968129459a41f38dfbb2771b19e4925a394a1e0",
           data: d
       });
