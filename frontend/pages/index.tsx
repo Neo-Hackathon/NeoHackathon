@@ -1,33 +1,25 @@
 import Head from 'next/head'
 import { Inter } from 'next/font/google'
 import styles from '@/styles/Home.module.css'
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Web3 } from "web3";
-import axios from 'axios';
+import ABI from "@/contracts/NeoHackathonNFTABI.json"
 
 const inter = Inter({ subsets: ['latin'] })
 
 export default function Home() {
+  const web = new Web3();
   const [account, setAccount] = useState("");
 
   useEffect(() => {
+    console.log(window.ethereum.request);
     const ConnectMetaMask = async () => {
       try {
           window.ethereum.enable().then(async () => {
-          const web3 = new Web3(window.ethereum);
-          const accounts = await web3.eth.getAccounts();
+          // const accounts = await web3.eth.getAccounts();
+          const accounts = await window.ethereum.request({ method: 'eth_accounts' });
           setAccount(accounts[0]);
-          let config = {
-            url: 'https://evm.ngd.network/api',
-            method: "get",
-            params: {
-              module: "account",
-              action: "eth_get_balance",
-              address: "0x71Bc23122C04F3879D70f1F643aF7245Ae4bB578"
-            }
-          };
-          let response = await axios.request(config);
-          console.log(response);
+
         });
       } catch (error) {
         console.log(error);
@@ -35,6 +27,38 @@ export default function Home() {
     };
     ConnectMetaMask();
   }, []);
+
+  const balanceOf = async () => {
+    try {
+      const a = await web.eth.abi.encodeFunctionCall({
+        name: 'safeMint',
+        type: 'function',
+        inputs: [{
+            internalType: "address",
+            type: 'address',
+            name: 'to'
+        }]
+      }, [account]);
+      console.log(a);
+      try {
+        const transactionHash = await window.ethereum.request({
+          method: 'eth_sendTransaction',
+          params: [
+            {
+              from: account, 
+              to: "0x1968129459A41F38dfbB2771b19E4925A394A1E0",
+              data: a,
+            },
+          ],
+        });
+        console.log(transactionHash);
+      } catch (error) {
+        console.error(error);
+      }
+    } catch (e) {
+      console.log(e);
+    }
+  }
 
 
   return (
@@ -54,6 +78,7 @@ export default function Home() {
         ) : null}
         {account ? (
           <>
+          <button onClick={balanceOf}>bal</button>
             <p>Your account address: {account} / NFT Balance: </p>
           </>
         ) : null}
